@@ -18,8 +18,30 @@
             --bg-sidebar: #f9fafb;
             --text-main: #111827;
             --text-muted: #6b7280;
-            --accent-color: #2563eb; 
+            --accent-color: #fd7e14; 
             --border-color: #e5e7eb;
+
+            /* Bootstrap 5 Overrides */
+            --bs-primary: #fd7e14;
+            --bs-primary-rgb: 253, 126, 20;
+            --bs-link-color: #fd7e14;
+            --bs-link-hover-color: #e36a0d;
+        }
+
+        /* Custom Override Classes to Ensure Color Application */
+        .text-primary { color: var(--accent-color) !important; }
+        .bg-primary { background-color: var(--accent-color) !important; }
+        .btn-primary { 
+            background-color: var(--accent-color) !important; 
+            border-color: var(--accent-color) !important;
+        }
+        .btn-primary:hover { 
+            background-color: #e36a0d !important; 
+            border-color: #e36a0d !important;
+        }
+        .bg-primary-subtle {
+            background-color: #fff4e6 !important; /* Light orange */
+            color: #c05600 !important; /* Darker orange for text on subtle */
         }
 
         body {
