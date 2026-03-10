@@ -60,6 +60,21 @@ class AbsencePresence(models.Model):
     def __str__(self):
         return f"{self.student.user.username} - {self.session.date}: {self.status}"
 
+class AbsenceJustification(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('declined', 'Declined'),
+    ]
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    session = models.ForeignKey(Seance, on_delete=models.CASCADE)
+    document = models.FileField(upload_to='justifications/')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Justification for {self.student.user.username} - {self.session.date} ({self.status})"
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

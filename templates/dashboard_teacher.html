@@ -64,11 +64,26 @@
         transition: all 0.2s;
     }
 
-    .btn-manage { background-color: #111827; color: white; border: none; }
-    .btn-manage:hover { background-color: #1f2937; color: white; }
-    
-    .btn-export { background-color: #ffffff; color: #374151; border: 1px solid #d1d5db; }
-    .btn-export:hover { background-color: #f9fafb; }
+    .btn-manage {
+        background-color: #111827;
+        color: white;
+        border: none;
+    }
+
+    .btn-manage:hover {
+        background-color: #1f2937;
+        color: white;
+    }
+
+    .btn-export {
+        background-color: #ffffff;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-export:hover {
+        background-color: #f9fafb;
+    }
 </style>
 
 <div class="row g-4 mb-5">
@@ -106,7 +121,8 @@
                 <a href="{% url 'export_attendance_csv' %}" class="action-btn btn-export justify-content-center">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV Report
                 </a>
-                <a href="{% url 'export_attendance_pdf' %}" class="action-btn btn-export justify-content-center text-danger">
+                <a href="{% url 'export_attendance_pdf' %}"
+                    class="action-btn btn-export justify-content-center text-danger">
                     <i class="bi bi-file-earmark-pdf"></i> Export PDF Report
                 </a>
             </div>
@@ -129,14 +145,15 @@
                 </span>
                 <i class="bi bi-three-dots-vertical text-muted"></i>
             </div>
-            
-            <h5 class="fw-bold mb-1" style="font-size: 1.1rem; color: #111827;">{{ course.module.name }}</h5>
+
+            <h5 class="fw-bold mb-1" style="font-size: 1.1rem; color: #111827;">{{ course.module.name|truncatechars:50
+                }}</h5>
             <p class="text-muted small mb-4">Class: {{ course.class_obj.name|default:"Not Assigned" }}</p>
-            
+
             <hr class="my-3 opacity-10">
-            
-            <a href="{% url 'session_list' %}?classmodule_id={{ course.id }}" 
-               class="text-primary text-decoration-none small fw-semibold d-flex align-items-center gap-1">
+
+            <a href="{% url 'session_list' %}?classmodule_id={{ course.id }}"
+                class="text-primary text-decoration-none small fw-semibold d-flex align-items-center gap-1">
                 View Sessions <i class="bi bi-arrow-right"></i>
             </a>
         </div>
@@ -156,26 +173,26 @@
     new Chart(ctx, {
         type: 'bar', // غيرت الـ Doughnut لـ Bar لأنه أكثر احترافية للبيانات الأكاديمية
         data: {
-            labels: {{ chart_labels|safe }},
-            datasets: [{
-                label: 'Attendance Count',
-                data: {{ chart_data|safe }},
-                backgroundColor: '#2563eb',
-                borderRadius: 6,
-                barThickness: 25
+            labels: {{ chart_labels| safe }},
+        datasets: [{
+            label: 'Attendance Count',
+            data: {{ chart_data| safe }},
+        backgroundColor: '#2563eb',
+        borderRadius: 6,
+        barThickness: 25
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
-                x: { grid: { display: false } }
-            }
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+            x: { grid: { display: false } }
         }
+    }
     });
 </script>
 {% endblock %}

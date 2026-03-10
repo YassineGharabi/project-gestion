@@ -9,7 +9,7 @@
             <h4 class="alert-heading">Success!</h4>
             <p>{{ message }}</p>
             <hr>
-            <p class="mb-0">Session: {{ session.classmodule.module.name }} - {{ session.date }}</p>
+            <p class="mb-0">Session: {{ session.classmodule.module.name|truncatechars:50 }} - {{ session.date }}</p>
         </div>
         <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
     </div>

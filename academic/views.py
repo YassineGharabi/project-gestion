@@ -102,3 +102,52 @@ def session_attendance_list(request, session_id):
 
     attendances = session.absencepresence_set.select_related('student__user').all()
     return render(request, 'academic/session_attendance_list.html', {'session': session, 'attendances': attendances})
+
+from attendance.models import AbsenceJustification
+from django.contrib import messages
+
+@login_required
+def teacher_justifications(request):
+    if request.user.role != 'teacher':
+        return redirect('dashboard')
+        
+    try:
+        teacher_obj = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        return redirect('dashboard')
+        
+    # Get all justifications for sessions taught by this teacher
+    justifications = AbsenceJustification.objects.filter(
+        session__classmodule__teacher=teacher_obj
+    ).select_related('student__user', 'session__classmodule__module', 'session__classmodule__class_obj').order_by('-submitted_at')
+    
+    # Pagination
+    paginator = Paginator(justifications, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'academic/justifications_list.html', {'page_obj': page_obj})
+
+@login_required
+def review_justification(request, justification_id):
+    if request.user.role != 'teacher':
+        return redirect('dashboard')
+        
+    justification = get_object_or_404(AbsenceJustification, pk=justification_id)
+    
+    # Verify the teacher owns this session
+    try:
+        teacher_obj = Teacher.objects.get(user=request.user)
+        if justification.session.classmodule.teacher != teacher_obj:
+            return redirect('teacher_justifications')
+    except Teacher.DoesNotExist:
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action in ['approved', 'declined']:
+            justification.status = action
+            justification.save()
+            messages.success(request, f"Justification {action} successfully.")
+            
+    return redirect('teacher_justifications')

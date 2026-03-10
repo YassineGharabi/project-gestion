@@ -55,33 +55,84 @@ def student_history(request):
         messages.error(request, "Your student profile is incomplete. Please contact the administrator to assign you to a class.")
         return redirect('dashboard')
         
-    records = AttendanceRecord.objects.filter(student=student_obj).select_related('session__classmodule__module', 'session__classmodule__class_obj')
+    # Get all past sessions for the student's class
+    sessions = Session.objects.filter(
+        classmodule__class_obj=student_obj.class_obj,
+        date__lte=timezone.now().date()
+    ).select_related('classmodule__module', 'classmodule__class_obj').order_by('-date', '-start_time')
     
     # Filter by module if specified
     module_filter = request.GET.get('module')
     if module_filter:
-        records = records.filter(session__classmodule__module_id=module_filter)
+        sessions = sessions.filter(classmodule__module_id=module_filter)
     
     # Get all modules the student has attended for the filter dropdown
-    from .models import Module
+    from .models import Module, AbsenceJustification
     attended_modules = Module.objects.filter(
-        classmodule__seance__absencepresence__student=student_obj
+        classmodule__class_obj=student_obj.class_obj
     ).distinct().order_by('name')
     
-    records = records.order_by('-timestamp')
+    present_session_ids = set(AttendanceRecord.objects.filter(student=student_obj, status='present').values_list('session_id', flat=True))
+    justifications = {j.session_id: j for j in AbsenceJustification.objects.filter(student=student_obj)}
+    
+    history_records = []
+    for s in sessions:
+        is_present = s.id in present_session_ids
+        status = 'present' if is_present else 'absent'
+        justification = justifications.get(s.id) if not is_present else None
+        
+        history_records.append({
+            'session': s,
+            'status': status,
+            'timestamp': s.start_time,
+            'justification': justification
+        })
     
     # Pagination
     from django.core.paginator import Paginator
-    paginator = Paginator(records, 15)  # 15 records per page
+    paginator = Paginator(history_records, 15)  # 15 records per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    from .forms import JustificationForm
+    form = JustificationForm()
+
     context = {
         'page_obj': page_obj,
         'attended_modules': attended_modules,
-        'module_filter': module_filter
+        'module_filter': module_filter,
+        'justification_form': form
     }
     return render(request, 'attendance/student_history.html', context)
+
+@login_required
+def submit_justification(request, session_id):
+    if not request.user.is_student() or request.method != 'POST':
+        return redirect('dashboard')
+        
+    student_obj = get_object_or_404(Student, user=request.user)
+    session = get_object_or_404(Seance, pk=session_id)
+    
+    from .forms import JustificationForm
+    from .models import AbsenceJustification
+    
+    form = JustificationForm(request.POST, request.FILES)
+    if form.is_valid():
+        justification, created = AbsenceJustification.objects.get_or_create(
+            student=student_obj,
+            session=session,
+            defaults={'document': form.cleaned_data['document']}
+        )
+        if not created: # If resubmitting, update document and reset to pending
+            justification.document = form.cleaned_data['document']
+            justification.status = 'pending'
+            justification.save()
+            
+        messages.success(request, "Justification submitted successfully.")
+    else:
+        messages.error(request, "Failed to submit justification. Please upload a valid PDF.")
+        
+    return redirect('student_history')
 
 @login_required
 def scan_qr(request):

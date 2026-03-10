@@ -44,12 +44,14 @@
                     {% for record in recent_records %}
                     <div class="list-group-item bg-transparent px-0 py-3 activity-card mb-2 ps-3 shadow-xs rounded">
                         <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                            <h6 class="fw-bold mb-0 text-primary">{{ record.session.classmodule.module.name }}</h6>
+                            <h6 class="fw-bold mb-0 text-primary">{{
+                                record.session.classmodule.module.name|truncatechars:50 }}</h6>
                             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Present</span>
                         </div>
                         <p class="small text-dark mb-1">{{ record.session.classmodule.class_obj.name }}</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{ record.session.date|date:"d M Y" }}</small>
+                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i> {{
+                                record.session.date|date:"d M Y" }}</small>
                             <small class="text-muted font-monospace">{{ record.timestamp|date:"H:i" }}</small>
                         </div>
                     </div>
